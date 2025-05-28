@@ -1,0 +1,21 @@
+.web-sider-container {
+    height: 100%;
+    background-color: #dddd;
+
+    .ant-layout-sider-children {
+        
+        .ant-menu-root {
+            background-color: #ccc;
+            width: 100%;
+        }
+        .ant-menu-item {
+            border-radius: 0;
+            margin: 0;
+            width: 100%;
+        }
+        .ant-menu-item-selected {
+            background-color: #888a95;
+            color: #fff;
+        }
+    }
+}

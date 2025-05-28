@@ -1,0 +1,56 @@
+$edit-formitem-lable-width: 98px;
+
+.comm-book-edit-container {
+    position: relative;
+
+    .category-item {
+        width: 88%;
+        padding-bottom: 10px;
+    }
+
+    .category-manage-btn {
+        position: absolute;
+        right: 0;
+        top: 66px;
+        width: 10%;
+        min-width: 120px;
+    }
+
+    .ant-form {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+
+        .comm-form-item-container {
+            width: 100%;
+        }
+
+        .count-item {
+            width: 30%;
+            padding-bottom: 10px;
+
+
+            .ant-input-number,
+            .ant-picker {
+                width: 100%;
+            }
+        }
+    }
+
+    .submit-row {
+        .ant-btn {
+            margin-right: 20px;
+        }
+    }
+    .f-item {
+
+        .ant-form-item-label {
+    
+            label {
+                width: $edit-formitem-lable-width;
+            }
+        }
+    }
+}
+
+

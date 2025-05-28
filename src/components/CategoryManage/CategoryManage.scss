@@ -1,0 +1,20 @@
+.category-manage-table {
+    .opt {
+        color: rgb(84, 162, 255);
+        cursor: pointer;
+
+    }
+
+    .opt:hover {
+        text-decoration: underline;
+    }
+
+    .category-edit {
+        margin-bottom: 0;
+
+        .ant-form-item-explain-error {
+            // top: 14px;
+            // position: relative;
+        }
+    }
+}

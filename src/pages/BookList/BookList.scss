@@ -1,0 +1,24 @@
+.book-manager-list-container {
+    padding: 20px;
+
+    .book-search-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+
+        .comm-form-item-container {
+            width: 33%;
+        }
+        .avai-item {
+            width: 15%;
+        }
+    }
+
+    .booklist-container {
+        .opt-item {
+            color: rgb(84, 162, 255);
+            cursor: pointer;
+            margin-left: 5px;
+        }
+    }
+}

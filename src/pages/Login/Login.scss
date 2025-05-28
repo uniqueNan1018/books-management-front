@@ -1,0 +1,27 @@
+$login-formitem-lable-width: 108px;
+
+.login-container {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .login-container-immer {
+        width: 50%;
+        // padding-bottom: 100px;
+
+        .ant-form-item-label {
+
+            label {
+                width: $login-formitem-lable-width;
+            }
+        }
+        .submit-row {
+            padding-left: $login-formitem-lable-width;
+        
+            .ant-btn {
+                margin-right: 20px;
+            }
+        }
+    }
+}
