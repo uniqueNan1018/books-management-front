@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import moment from "moment";
 import { Button, Form, Input, Select, DatePicker, InputNumber, message } from 'antd';
 import { required, fewerOfCount, formItemsVali } from '../../utils/validation';
@@ -31,11 +31,16 @@ type Option = {
 type BookEditProps = {
     mode: 'edit' | 'create';
     id?: string;
-    submitPath: string;
+    submit: {
+        url: string;
+        method: string;
+    };
+    callback?: () => void;
 };
 
 const BookEdit: React.FC<BookEditProps> = (props) => {
     const { mode } = props;
+    const prevCategoryRef = useRef<number | undefined>(undefined);
 
     const [form] = Form.useForm();
     const [categoryOptions, setCategoryOptions] = useState<Option[]>([]);
@@ -56,6 +61,8 @@ const BookEdit: React.FC<BookEditProps> = (props) => {
     });
 
     useEffect(() => {
+        console.log("categoryList", categoryList);
+
         const nextCategoryOptions = categoryList.map(item => ({
             label: item.categoryName,
             value: item.id,
@@ -216,10 +223,10 @@ const BookEdit: React.FC<BookEditProps> = (props) => {
                 }
             },
         }]);
-    }, [bookInfo]);
+    }, [bookInfo, categoryOptions]);
 
     useEffect(() => {
-        if(mode === "edit") {
+        if (mode === "edit") {
             const url = `http://127.0.0.1:8080/logged/book/${props.id}`;
             axios({
                 method: "GET",
@@ -229,14 +236,15 @@ const BookEdit: React.FC<BookEditProps> = (props) => {
                 .then((res) => {
                     const { code } = res.data;
                     if (code === 20041) {
-                        const newBookInfo = {...res.data.data};
-                        newBookInfo.publishDate = newBookInfo.publishDate ? 
+                        const newBookInfo = { ...res.data.data };
+                        prevCategoryRef.current = newBookInfo.category;
+                        newBookInfo.publishDate = newBookInfo.publishDate ?
                             moment(newBookInfo.publishDate) : null;
 
                         setBookInfo(newBookInfo);
                     }
                 })
-        } 
+        }
     }, []);
 
     const onItemChange = (key: string, value: string | number) => {
@@ -252,19 +260,31 @@ const BookEdit: React.FC<BookEditProps> = (props) => {
             setCommFormItems(formItems);
             return;
         }
+        const { submit } = props;
+        const data = { ...bookInfo };
+        if (mode === "edit") {
+            data.prevCategory = prevCategoryRef.current;
+        }
         axios({
-            method: "POST",
-            url: "http://127.0.0.1:8080/logged/book",
-            data: bookInfo,
+            ...submit,
+            data,
             withCredentials: true
         })
             .then((res) => {
                 const { code } = res.data;
-                if (code === 20011) {
-                    messageApi.open({
-                        type: 'success',
-                        content: '新規書籍を登録しました。',
-                    });
+                if (code === 20011 || code === 20031) {
+                    const content = mode === "create" ?
+                        "新規書籍を登録しました。" : "書籍を更新しました。";
+
+                    messageApi
+                        .open({
+                            type: 'success',
+                            content,
+                            duration: 2, // 表示時間（秒）を明示
+                        })
+                        .then(() => {
+                            props.callback?.();
+                        });
                 }
             });
     }

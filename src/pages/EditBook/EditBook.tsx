@@ -31,7 +31,11 @@ const EditBook: React.FC = () => {
                 <BookEdit
                     mode="edit"
                     id={id}
-                    submitPath=""
+                    submit={{
+                        url: `http://127.0.0.1:8080/logged/book/${id}`,
+                        method: "PUT",
+                    }}
+                    callback={()=>back()}
                 />
             </div>
         )

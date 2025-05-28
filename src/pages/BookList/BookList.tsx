@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Select, Form, AutoComplete, Switch, Table, Popconfirm } from 'antd';
+import { Button, Select, Form, AutoComplete, Switch, Table, Popconfirm, message } from 'antd';
 import type { TableColumnsType } from 'antd';
 import CommFormItem from "../../components/CommFormItem";
 import { useSelector, shallowEqual } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
 import axios from "axios";
+import { CategoryBase } from "../../components/CategoryManage/CategoryType";
 
 interface Book {
     id: number;
@@ -35,26 +36,38 @@ interface SearchObj extends Search {
     fromNum: number;
 }
 
-type Option = { label: string; value: string };
+type Option = { label: string  | null; value: string | number };
 
 const BookList: React.FC = () => {
     const [categoryList, setCategoryList] = useState(useSelector((state: RootState) => state.category, shallowEqual));
     const [searchObj, setSearchObj] = useState<Search>({
         current: 1,
-        pageSize: 15,
+        pageSize: 10,
     });
     const navigate = useNavigate();
     const [bookList, setBookList] = useState<Book[]>([]);
     const [resCount, setResCount] = useState(0);
     const [titleOptions, setTitleOptions] = useState<Option[]>([]);
     const [categoryOptions, setCategoryOptions] = useState<Option[]>([]);
+    const [messageApi, contextHolder] = message.useMessage();
 
     useEffect(() => {
         if (!categoryList.length) {
             getCategoryList();
         }
+        if(!categoryOptions.length) {
+            toCategoryOptions(categoryList);
+        }
         getBooks();
     }, [searchObj]);
+
+    const toCategoryOptions = (categoryList: CategoryBase[]) => {
+        const nextCategoryOptions: Option[] = categoryList.map(item => ({
+            label: item.categoryName,
+            value: item.id,
+        }));
+        setCategoryOptions(nextCategoryOptions);
+    }
 
     const getCategoryList = () => {
         axios({
@@ -67,11 +80,7 @@ const BookList: React.FC = () => {
                 if (code === 20041) {
                     const categoryList = [...res.data.data];
                     setCategoryList(categoryList);
-                    const nextCategoryOptions = categoryList.map(item => ({
-                        label: item.categoryName,
-                        value: item.id,
-                    }));
-                    setCategoryOptions(nextCategoryOptions);
+                    toCategoryOptions(categoryList);
                 }
             });
     }
@@ -83,6 +92,10 @@ const BookList: React.FC = () => {
             fromNum: searchObj.current ? (searchObj.current - 1) * searchObj.pageSize : 0,
             current: undefined,
         };
+
+        if (data.count === 0) {
+            data.count = undefined;
+        }
 
         axios({
             method: "POST",
@@ -126,6 +139,7 @@ const BookList: React.FC = () => {
     const onSearchChange = (key: string, value: any) => {
         const nextSearch = {
             ...searchObj,
+            current: 1,
             [key]: value
         };
         setSearchObj(nextSearch);
@@ -189,6 +203,27 @@ const BookList: React.FC = () => {
         )
     }
 
+    const delBook = (book: Book) => {
+        const { id, category } = book;
+        axios({
+            method: "DELETE",
+            url: `http://127.0.0.1:8080/logged/book/bookId/${id}/cteId/${category}`,
+            withCredentials: true
+        })
+            .then((res) => {
+                const code = res.data.code;
+                if(code === 20021) {
+                    messageApi.open({
+                        type: 'success',
+                        content: '書籍を削除しました。',
+                    })
+                        .then(() => {
+                            getBooks();
+                        });
+                }
+            })
+    }
+
     const columns: TableColumnsType<Book> = [{
         title: "書籍タイトル",
         dataIndex: "title",
@@ -203,7 +238,8 @@ const BookList: React.FC = () => {
     }, {
         title: "サマリー",
         dataIndex: "summary",
-        key: "summary"
+        key: "summary",
+        width: 300,
     }, {
         title: "著者名",
         dataIndex: "author",
@@ -248,8 +284,7 @@ const BookList: React.FC = () => {
                         placement="topRight"
                         title="書籍削除"
                         description="この書籍を本当に削除してもよろしいですか？"
-                        // onConfirm={confirm}
-                        // onCancel={cancel}
+                        onConfirm={()=>delBook(record)}
                         okText="削除"
                         cancelText="キャンセル"
                     >
@@ -260,6 +295,12 @@ const BookList: React.FC = () => {
             )
         }
     }];
+
+    const onPageChange = (page: number) => {
+        const newSearchObj = {...searchObj};
+        newSearchObj.current = page;
+        setSearchObj(newSearchObj);
+    }
 
     const renderTable = () => {
         return (
@@ -276,6 +317,7 @@ const BookList: React.FC = () => {
                         pageSize: searchObj.pageSize,
                         current: searchObj.current,
                         total: resCount,
+                        onChange: onPageChange,
                     }}
                 />
             </section>
@@ -286,6 +328,7 @@ const BookList: React.FC = () => {
         <article className="book-manager-list-container">
             {renderSearch()}
             {renderTable()}
+            {contextHolder}
         </article>
     )
 }
